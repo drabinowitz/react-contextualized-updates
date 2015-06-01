@@ -7,5 +7,22 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "BSD-2-Clause"
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "gulp-if": "~1.2.5",
+    "coffee-react": "~3.2.0",
+    "react": "~0.13.3",
+    "gulp-template": "~3.0.0",
+    "gulp": "~3.8.11"
+  },
+  "devDependencies": {
+    "sinon": "~1.14.1",
+    "chai": "~2.3.0",
+    "sinon-chai": "~2.7.0",
+    "mocha": "~2.2.5",
+    "vistar-gulp-tasks": "git://github.com/vistarmedia/gulp-tasks.git",
+    "coffee-reactify": "~3.0.0",
+    "chai-string": "~1.1.1",
+    "domino": "~1.0.18"
+  }
 }
