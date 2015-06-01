@@ -31,6 +31,16 @@ describe 'Example', ->
           <button onClick=@onClick>Update User</button>
         </div>
 
+    @ShowOtherUser = ShowOtherUser = React.createClass
+      displayName: 'ShowOtherUser'
+      mixins: [reactUpdates.contextMixin('userStore')]
+      getDefaultProps: -> id: '0'
+      render: ->
+        mydata = @pluggedIn.userStore.byId @props.id
+        <div>
+          <div>User Other Child: {mydata}</div>
+        </div>
+
     @UserParent = UserParent = React.createClass
       displayName: 'UserParent'
       mixins: [reactUpdates.contextMixin('userStore')]
@@ -40,6 +50,9 @@ describe 'Example', ->
         <div>
           <div>User Parent: {mydata}</div>
           <ShowUser />
+          <div>
+            <ShowOtherUser />
+          </div>
         </div>
 
     app = new reactUpdates.App()
@@ -47,12 +60,19 @@ describe 'Example', ->
     React.withContext app.getContext(), =>
       @view = @renderWithContext React, <@UserParent />
 
-  it 'should display the user name', ->
+  it 'should display the user name of the child', ->
     expect(@view.getDOMNode().textContent).to.contain 'User Child: Dmitri'
 
   it 'should update on button click', ->
     @simulate.click @oneByTag @view, 'button'
     expect(@view.getDOMNode().textContent).to.contain 'User Child: New Dmitri'
+
+  it 'should display the user name of the other child', ->
+    expect(@view.getDOMNode().textContent).to.contain 'User Other Child: Dmitri'
+
+  it 'should update on button click', ->
+    @simulate.click @oneByTag @view, 'button'
+    expect(@view.getDOMNode().textContent).to.contain 'User Other Child: New Dmitri'
 
   it 'should display the user name of the parent', ->
     expect(@view.getDOMNode().textContent).to.contain 'User Parent: Dmitri'
