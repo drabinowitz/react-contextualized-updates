@@ -33,7 +33,8 @@ appContextMixin = (stores) ->
   getChildContext: -> childContext
   componentWillMount: -> @__appOwnerContext__ = childContext
 
-contextMixin = (storeKeys...) ->
+contextMixin = (storeKeys, query) ->
+  storeKeys = [storeKeys] unless Array.isArray storeKeys
   contextTypes = __appStores__: React.PropTypes.object
   childContextTypes = {}
   childContext = {}
@@ -43,28 +44,32 @@ contextMixin = (storeKeys...) ->
     childContextTypes[localStoreKey] = React.PropTypes.bool.isRequired
     childContext[localStoreKey] = true
 
-  getInitialState: -> __contextualizedState__: 0
-  contextTypes: contextTypes
-  childContextTypes: childContextTypes
-  getChildContext: -> childContext
-  __triggerUpdate__: -> @setState __contextualizedState__: 0
-  componentWillMount: ->
-    if @__appOwnerContext__? and @context?.__appStores__?
-      throw new Error("component has appContextMixin and is not the top level React component")
-    if not @__appOwnerContext__? and not @context?.__appStores__?
-      throw new Error("component does not have access to app context and and does not have the appContextMixin this likely occurred because either the component did not receive the appContextMixin or the appContextMixin was passed in after the contextMixin. Please verify that this component has received all mixins and that the order of mixins is correct")
-    contextKey = 'context'
-    if @__appOwnerContext__?
-      contextKey = '__appOwnerContext__'
-    @pluggedIn = {}
-    for key in storeKeys
-      store = @[contextKey].__appStores__[key]
-      unless store
-        throw new Error(
-          "key: #{key} does not match any of the plugged in store keys")
-      @pluggedIn[key] = store
-      unless @context?[getLocalStoreKey key]
-        store.addChangeListener @__triggerUpdate__
+  result =
+    contextTypes: contextTypes
+    childContextTypes: childContextTypes
+    getChildContext: -> childContext
+    __triggerUpdate__: -> @setState __contextualizedState__: undefined
+    componentWillMount: ->
+      if @__appOwnerContext__? and @context?.__appStores__?
+        throw new Error("component has appContextMixin and is not the top level React component")
+      if not @__appOwnerContext__? and not @context?.__appStores__?
+        throw new Error("component does not have access to app context and and does not have the appContextMixin this likely occurred because either the component did not receive the appContextMixin or the appContextMixin was passed in after the contextMixin. Please verify that this component has received all mixins and that the order of mixins is correct")
+      contextKey = 'context'
+      if @__appOwnerContext__?
+        contextKey = '__appOwnerContext__'
+      @plugged = stores: {}
+      for key in storeKeys
+        store = @[contextKey].__appStores__[key]
+        unless store
+          throw new Error(
+            "key: #{key} does not match any of the plugged in store keys")
+        @plugged.stores[key] = store
+        unless @context?[getLocalStoreKey key]
+          store.addChangeListener @__triggerUpdate__
+
+  if typeof query is 'function'
+    result.componentWillUpdate = -> @plugged.data = query()
+  result
 
 ###
 React.createClass

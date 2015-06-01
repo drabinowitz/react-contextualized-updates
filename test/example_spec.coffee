@@ -36,7 +36,7 @@ describe 'Example', ->
       onClick: =>
         @userStore.changed()
       render: ->
-        mydata = @pluggedIn.userStore.byId @props.id
+        mydata = @plugged.stores.userStore.byId @props.id
         <div>
           <div>User Child: {mydata}</div>
           <button className='user' onClick=@onClick>Update User</button>
@@ -49,7 +49,7 @@ describe 'Example', ->
       onClick: =>
         @messageStore.changed()
       render: ->
-        mydata = @pluggedIn.messageStore.byId @props.id
+        mydata = @plugged.stores.messageStore.byId @props.id
         <div>
           <div>Message: {mydata}</div>
           <button className='message' onClick=@onClick>Update Message</button>
@@ -60,7 +60,7 @@ describe 'Example', ->
       mixins: [reactUpdates.contextMixin('userStore')]
       getDefaultProps: -> id: '0'
       render: ->
-        mydata = @pluggedIn.userStore.byId @props.id
+        mydata = @plugged.stores.userStore.byId @props.id
         <div>
           <div>User Other Child: {mydata}</div>
         </div>
@@ -74,7 +74,7 @@ describe 'Example', ->
         reactUpdates.contextMixin('userStore')]
       getDefaultProps: -> id: '0'
       render: ->
-        mydata = @pluggedIn.userStore.byId @props.id
+        mydata = @plugged.stores.userStore.byId @props.id
         <div>
           <div>User Parent: {mydata}</div>
           <ShowUser />
