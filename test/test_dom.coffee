@@ -56,12 +56,12 @@ beforeEach ->
   TestUtils = require('react/addons').addons.TestUtils
 
   @_nodes = []
-  @render = (cls, el) ->
+  @renderWithContext = (reactWithContext, cls, el) ->
     if not el?
       el = document.createElement('div')
       document.body.appendChild(el)
       @_nodes.push(el)
-    React.render(cls, el)
+    reactWithContext.render(cls, el)
 
   @simulate   = TestUtils.Simulate
   @allByClass = TestUtils.scryRenderedDOMComponentsWithClass

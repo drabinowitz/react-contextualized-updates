@@ -1,3 +1,5 @@
+React = require 'react'
+
 ### Plug Store ###
 # plug store into app context
 # store must implement addChangeListener interface:
@@ -16,7 +18,9 @@ appContext.plugInAll
 # inject app context to React withContext
 
 class App
-  constructor: (stores) -> @plugInAll stores
+  constructor: (stores) ->
+    @_pluggedStores = {}
+    @plugInAll stores
 
   plugInOne: (storeKey, store) ->
     if @_pluggedStores[storeKey]
@@ -48,15 +52,13 @@ React.withContext appContext, ->
 getLocalStoreKey = (key) -> "__localStore__#{key}"
 
 contextMixin = (storeKeys...) ->
-  @pluggedIn = {}
-
   contextTypes = __appStores__: React.PropTypes.object
   childContextTypes = {}
   childContext = {}
   for key in storeKeys
     localStoreKey = getLocalStoreKey key
     contextTypes[localStoreKey] = React.PropTypes.bool
-    childContexTypes[localStoreKey] = React.PropTypes.bool.isRequired
+    childContextTypes[localStoreKey] = React.PropTypes.bool.isRequired
     childContext[localStoreKey] = true
 
   getInitialState: -> __contextualizedState__: 0
@@ -65,6 +67,7 @@ contextMixin = (storeKeys...) ->
   getChildContext: -> childContext
   __triggerUpdate__: -> @setState __contextualizedState__: 0
   componentWillMount: ->
+    @pluggedIn = {}
     for key in storeKeys
       store = @context.__appStores__[key]
       unless store
@@ -82,17 +85,6 @@ React.createClass
     <div>{myData}</div>
 ###
 
-ShowUser = React.createClass
-  displayName: 'ShowUser'
-  mixins: [contextMixin('userStore')]
-  getDefaultProps: -> id: '0'
-  render: ->
-    mydata = @pluggedIn.userStore.byId @props.id
-    <div>
-      <div>User: {mydata}</div>
-      <button onClick=@onClick>Update User</button>
-    </div>
-
 # components use local-context to determine if they need to add an event
 # listener to the plugged in stores
 # injected stores update app context when they change
@@ -102,16 +94,5 @@ ShowUser = React.createClass
 #   - true: set local-context to app-context and setState with internal key
 #   - false: do nothing
 
-userStore =
-  users:
-    '0': 'Dmitri'
-  byId: (id) -> @users[id]
-  addChangeListener: (cb) -> @_cb = cb
-  changed: ->
-    @users["0"] = "New Dmitri #{Math.random()}"
-    @_cb()
 
-app = new App()
-app.plugInOne 'userStore', userStore
-React.withContext app.getContext(), ->
-  React.render <ShowUser />, document.body
+module.exports = {App, contextMixin}
