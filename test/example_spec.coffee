@@ -23,11 +23,12 @@ describe 'Example', ->
       messages:
         '0': 'hi there'
       byId: (id) -> @messages[id]
-      addChangeListener: (cb) -> @_cb = cb
-      removeChangeListener: (cb) -> @_cb = null
+      _cb: []
+      addChangeListener: (cb) -> @_cb.push cb
+      removeChangeListener: (cb) -> @_cb = @_cb.filter (v) -> v isnt cb
       changed: ->
         @messages["0"] = "New hi there #{Math.random()}"
-        @_cb?()
+        @_cb.forEach (v) -> v?()
 
     @ShowUser = ShowUser = React.createClass
       displayName: 'ShowUser'
@@ -53,6 +54,16 @@ describe 'Example', ->
         <div>
           <div>Message: {mydata}</div>
           <button className='message' onClick=@onClick>Update Message</button>
+        </div>
+
+    @QueryMessage = QueryMessage = React.createClass
+      displayName: 'ShowMessage'
+      mixins: [reactUpdates.contextMixin('messageStore', '_getData')]
+      getDefaultProps: -> id: '0'
+      _getData: -> @plugged.stores.messageStore.byId @props.id
+      render: ->
+        <div>
+          <div>Message Query Result: {@plugged.data}</div>
         </div>
 
     @ShowOtherUser = ShowOtherUser = React.createClass
@@ -81,6 +92,7 @@ describe 'Example', ->
           <div>
             <ShowOtherUser />
             <ShowMessage />
+            <QueryMessage />
           </div>
         </div>
 
@@ -89,27 +101,36 @@ describe 'Example', ->
   it 'should display the user name of the child', ->
     expect(@view.getDOMNode().textContent).to.contain 'User Child: Dmitri'
 
-  it 'should update on button click', ->
+  it 'should update user on button click', ->
     @simulate.click @oneByClass @view, 'user'
     expect(@view.getDOMNode().textContent).to.contain 'User Child: New Dmitri'
 
   it 'should display the user name of the other child', ->
     expect(@view.getDOMNode().textContent).to.contain 'User Other Child: Dmitri'
 
-  it 'should update on button click', ->
+  it 'should update other user on button click', ->
     @simulate.click @oneByClass @view, 'user'
     expect(@view.getDOMNode().textContent).to.contain 'User Other Child: New Dmitri'
 
   it 'should display the user name of the parent', ->
     expect(@view.getDOMNode().textContent).to.contain 'User Parent: Dmitri'
 
-  it 'should update on button click', ->
+  it 'should update parent on button click', ->
     @simulate.click @oneByClass @view, 'user'
     expect(@view.getDOMNode().textContent).to.contain 'User Parent: New Dmitri'
 
-  it 'should upldate the message name', ->
+  it 'should show the message name', ->
     expect(@view.getDOMNode().textContent).to.contain 'Message: hi there'
 
-  it 'should update on button click', ->
+  it 'should update message on button click', ->
     @simulate.click @oneByClass @view, 'message'
     expect(@view.getDOMNode().textContent).to.contain 'Message: New hi there'
+
+  it 'should show the message name when queried', ->
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'Message Query Result: hi there'
+
+  it 'should update message query on button click', ->
+    @simulate.click @oneByClass @view, 'message'
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'Message Query Result: New hi there'

@@ -33,7 +33,7 @@ appContextMixin = (stores) ->
   getChildContext: -> childContext
   componentWillMount: -> @__appOwnerContext__ = childContext
 
-contextMixin = (storeKeys, query) ->
+contextMixin = (storeKeys, queryKey) ->
   storeKeys = [storeKeys] unless Array.isArray storeKeys
   contextTypes = __appStores__: React.PropTypes.object
   childContextTypes = {}
@@ -54,6 +54,9 @@ contextMixin = (storeKeys, query) ->
         throw new Error("component has appContextMixin and is not the top level React component")
       if not @__appOwnerContext__? and not @context?.__appStores__?
         throw new Error("component does not have access to app context and and does not have the appContextMixin this likely occurred because either the component did not receive the appContextMixin or the appContextMixin was passed in after the contextMixin. Please verify that this component has received all mixins and that the order of mixins is correct")
+      if queryKey and typeof @[queryKey] isnt 'function'
+        throw new Error("did not find a method at #{queryKey}")
+
       contextKey = 'context'
       if @__appOwnerContext__?
         contextKey = '__appOwnerContext__'
@@ -66,9 +69,11 @@ contextMixin = (storeKeys, query) ->
         @plugged.stores[key] = store
         unless @context?[getLocalStoreKey key]
           store.addChangeListener @__triggerUpdate__
+      if queryKey
+        @plugged.data = @[queryKey]()
 
-  if typeof query is 'function'
-    result.componentWillUpdate = -> @plugged.data = query()
+  if queryKey
+    result.componentWillUpdate = -> @plugged.data = @[queryKey]()
   result
 
 ###
