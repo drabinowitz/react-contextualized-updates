@@ -11,7 +11,6 @@
   "dependencies": {
     "gulp-if": "~1.2.5",
     "coffee-react": "~3.2.0",
-    "react": "~0.12.x",
     "gulp-template": "~3.0.0",
     "gulp": "~3.8.11",
     "coffee-react-transform": "~3.1.0",
@@ -33,7 +32,8 @@
     "vinyl-buffer": "~1.0.0",
     "gulp-uglify": "~1.2.0",
     "browserify": "~10.2.3",
-    "gulp-less": "~3.0.3"
+    "gulp-less": "~3.0.3",
+    "react": "~0.13.3"
   },
   "devDependencies": {
     "sinon": "~1.14.1",

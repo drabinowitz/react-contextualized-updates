@@ -8,48 +8,30 @@ React = require 'react'
 #
 # such that when the store changes it invokes the cb
 
-###
-appContext.plugInOne 'myStore', MyStore
-appContext.plugInAll
-  myStore: MyStore
-###
-
-### CONTEXT ###
-# inject app context to React withContext
-
-class App
-  constructor: (stores) ->
-    @_pluggedStores = {}
-    @plugInAll stores
-
-  plugInOne: (storeKey, store) ->
-    if @_pluggedStores[storeKey]
-      throw new Error("store already plugged at key: #{storeKey}")
-    @_pluggedStores[storeKey] = store
-    store.onPlug?()
-    unless typeof store.addChangeListener is 'function'
-      throw new Error(
-        "store plugged at key: #{storeKey} does not possess an 'addChangeListener' method")
-
-  plugInAll: (stores) ->
-    @plugInOne key, store for key, store of stores
-
-  getContext: ->
-    context = __appStores__: {}
-    for key, store of @_pluggedStores
-      context.__appStores__[key] = store
-      context[getLocalStoreKey key] = false
-    context
-
-###
-React.withContext appContext, ->
-  React.render(<AppView />, document.body)
-###
-
 ### Mixin ###
 # inject store(s) context into component class
 
 getLocalStoreKey = (key) -> "__localStore__#{key}"
+
+appContextMixin = (stores) ->
+  childContextTypes = __appStores__: React.PropTypes.object
+  childContext = __appStores__: {}
+  for key, store of stores
+    unless typeof store.addChangeListener is 'function'
+      throw new Error(
+        "store plugged at key: #{key} does not possess an 'addChangeListener' method")
+    unless typeof store.removeChangeListener is 'function'
+      throw new Error(
+        "store plugged at key: #{key} does not possess a 'removeChangeListener' method")
+
+    childContext.__appStores__[key] = store
+
+    localStoreKey = getLocalStoreKey key
+    childContextTypes[localStoreKey] = React.PropTypes.bool
+
+  childContextTypes: childContextTypes
+  getChildContext: -> childContext
+  componentWillMount: -> @__appOwnerContext__ = childContext
 
 contextMixin = (storeKeys...) ->
   contextTypes = __appStores__: React.PropTypes.object
@@ -67,14 +49,21 @@ contextMixin = (storeKeys...) ->
   getChildContext: -> childContext
   __triggerUpdate__: -> @setState __contextualizedState__: 0
   componentWillMount: ->
+    if @__appOwnerContext__? and @context?.__appStores__?
+      throw new Error("component has appContextMixin and is not the top level React component")
+    if not @__appOwnerContext__? and not @context?.__appStores__?
+      throw new Error("component does not have access to app context and and does not have the appContextMixin this likely occurred because either the component did not receive the appContextMixin or the appContextMixin was passed in after the contextMixin. Please verify that this component has received all mixins and that the order of mixins is correct")
+    contextKey = 'context'
+    if @__appOwnerContext__?
+      contextKey = '__appOwnerContext__'
     @pluggedIn = {}
     for key in storeKeys
-      store = @context.__appStores__[key]
+      store = @[contextKey].__appStores__[key]
       unless store
         throw new Error(
           "key: #{key} does not match any of the plugged in store keys")
       @pluggedIn[key] = store
-      unless @context[getLocalStoreKey key]
+      unless @context?[getLocalStoreKey key]
         store.addChangeListener @__triggerUpdate__
 
 ###
@@ -95,4 +84,4 @@ React.createClass
 #   - false: do nothing
 
 
-module.exports = {App, contextMixin}
+module.exports = {appContextMixin, contextMixin}
