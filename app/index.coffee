@@ -19,10 +19,12 @@ appContextMixin = (stores) ->
   for key, store of stores
     unless typeof store.addChangeListener is 'function'
       throw new Error(
-        "store plugged at key: #{key} does not possess an 'addChangeListener' method")
+        "store plugged at key: #{key} does not possess an 'addChangeListener'
+        method")
     unless typeof store.removeChangeListener is 'function'
       throw new Error(
-        "store plugged at key: #{key} does not possess a 'removeChangeListener' method")
+        "store plugged at key: #{key} does not possess a 'removeChangeListener'
+        method")
 
     childContext.__appStores__[key] = store
 
@@ -51,9 +53,16 @@ contextMixin = (storeKeys, queryKey) ->
     __triggerUpdate__: -> @setState __contextualizedState__: true
     componentWillMount: ->
       if @__appOwnerContext__? and @context?.__appStores__?
-        throw new Error("component has appContextMixin and is not the top level React component")
+        throw new Error(
+          "component has appContextMixin and is not the top level React
+          component")
       if not @__appOwnerContext__? and not @context?.__appStores__?
-        throw new Error("component does not have access to app context and and does not have the appContextMixin this likely occurred because either the component did not receive the appContextMixin or the appContextMixin was passed in after the contextMixin. Please verify that this component has received all mixins and that the order of mixins is correct")
+        throw new Error(
+          "component does not have access to app context and and does not have
+          the appContextMixin this likely occurred because either the component
+          did not receive the appContextMixin or the appContextMixin was passed
+          in after the contextMixin. Please verify that this component has
+          received all mixins and that the order of mixins is correct")
       if queryKey and typeof @[queryKey] isnt 'function'
         throw new Error("did not find a method at #{queryKey}")
 
