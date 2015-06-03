@@ -134,3 +134,10 @@ describe 'Example', ->
     @simulate.click @oneByClass @view, 'message'
     expect(@view.getDOMNode().textContent)
       .to.contain 'Message Query Result: New hi there'
+
+  it 'should remove change listeners on unmount', ->
+    expect(@userStore._cb).to.exist
+    expect(@messageStore._cb).to.have.length.above 0
+    React.unmountComponentAtNode @_nodes[0]
+    expect(@userStore._cb).not.to.exist
+    expect(@messageStore._cb).to.have.length 0
