@@ -33,7 +33,9 @@ appContextMixin = (stores) ->
 
   childContextTypes: childContextTypes
   getChildContext: -> childContext
-  componentWillMount: -> @__appOwnerContext__ = childContext
+  getInitialState: ->
+    @__appOwnerContext__ = childContext
+    {}
 
 contextMixin = (storeKeys, queryKey) ->
   storeKeys = [storeKeys] unless Array.isArray storeKeys
@@ -51,7 +53,7 @@ contextMixin = (storeKeys, queryKey) ->
     childContextTypes: childContextTypes
     getChildContext: -> childContext
     __triggerUpdate__: -> @setState __contextualizedState__: true
-    componentWillMount: ->
+    getInitialState: ->
       if @__appOwnerContext__? and @context?.__appStores__?
         throw new Error(
           "component has appContextMixin and is not the top level React
@@ -82,8 +84,11 @@ contextMixin = (storeKeys, queryKey) ->
           @plugged.__listenedStores__.push key
       if queryKey
         @plugged.data = @[queryKey]()
+
+      state = {}
       if @plugged.__listenedStores__?
-        @setState __contextualizedState__: true
+        state.__contextualizedState__ = true
+      state
 
     componentWillUnmount: ->
       if @state?.__contextualizedState__
