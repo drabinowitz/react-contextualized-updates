@@ -60,7 +60,7 @@ describe 'Example', ->
       displayName: 'ShowMessage'
       mixins: [reactUpdates.contextMixin('messageStore', '_getData')]
       getDefaultProps: -> id: '0'
-      _getData: -> @plugged.stores.messageStore.byId @props.id
+      _getData: (props) -> @plugged.stores.messageStore.byId props.id
       render: ->
         <div>
           <div>Message Query Result: {@plugged.data}</div>

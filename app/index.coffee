@@ -48,6 +48,7 @@ contextMixin = (storeKeys, queryKey) ->
     childContextTypes[localStoreKey] = React.PropTypes.bool.isRequired
     childContext[localStoreKey] = true
 
+  query = undefined
   result =
     contextTypes: contextTypes
     childContextTypes: childContextTypes
@@ -65,7 +66,7 @@ contextMixin = (storeKeys, queryKey) ->
           did not receive the appContextMixin or the appContextMixin was passed
           in after the contextMixin. Please verify that this component has
           received all mixins and that the order of mixins is correct")
-      if queryKey and typeof @[queryKey] isnt 'function'
+      if queryKey? and typeof @[queryKey] isnt 'function'
         throw new Error("did not find a method at #{queryKey}")
 
       contextKey = 'context'
@@ -83,7 +84,8 @@ contextMixin = (storeKeys, queryKey) ->
           @plugged.__listenedStores__ or= []
           @plugged.__listenedStores__.push key
       if queryKey
-        @plugged.data = @[queryKey]()
+        query = @[queryKey]
+        @plugged.data = query(@props)
 
       state = {}
       if @plugged.__listenedStores__?
@@ -97,7 +99,21 @@ contextMixin = (storeKeys, queryKey) ->
           store.removeChangeListener @__triggerUpdate__
 
   if queryKey
-    result.componentWillUpdate = -> @plugged.data = @[queryKey]()
+    result.componentWillReceiveProps = (nextProps) ->
+      @plugged.nextData = query(nextProps)
+      @plugged.__changed__ = true
+    result.shouldComponentUpdate = (nextProps) ->
+      @plugged.nextData =
+        if @plugged.__changed__
+          @plugged.nextData
+        else
+          query(nextProps)
+      @plugged.__changed__ = false
+      return true
+    result.componentWillUpdate = ->
+      @plugged.prevData = @plugged.data
+      @plugged.data = @plugged.nextData
+      @plugged.nextData = undefined
   result
 
 ###
