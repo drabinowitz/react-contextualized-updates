@@ -103,10 +103,8 @@ contextMixin = (storeKeys, queryKey) ->
       @plugged.nextData = query(nextProps)
       @plugged.__changed__ = true
     result.shouldComponentUpdate = (nextProps) ->
-      @plugged.nextData =
-        if @plugged.__changed__
-          @plugged.nextData
-        else
+      unless @plugged.__changed__
+        @plugged.nextData =
           query(nextProps)
       @plugged.__changed__ = false
       return true
