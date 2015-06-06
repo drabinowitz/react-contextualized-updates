@@ -100,12 +100,13 @@ contextMixin = (storeKeys, queryKey) ->
 
   if queryKey
     result.componentWillReceiveProps = (nextProps) ->
+      @plugged.prevData = undefined
       @plugged.nextData = query(nextProps)
       @plugged.__changed__ = true
     result.shouldComponentUpdate = (nextProps) ->
       unless @plugged.__changed__
-        @plugged.nextData =
-          query(nextProps)
+        @plugged.prevData = undefined
+        @plugged.nextData = query(nextProps)
       @plugged.__changed__ = false
       return true
     result.componentWillUpdate = ->
