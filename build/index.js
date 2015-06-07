@@ -45,7 +45,7 @@
     };
   };
 
-  contextMixin = function(storeKeys, queryKey) {
+  contextMixin = function(storeKeys, queryKey, stateChangeKey) {
     var childContext, childContextTypes, contextTypes, i, key, len, localStoreKey, query, result;
     if (!Array.isArray(storeKeys)) {
       storeKeys = [storeKeys];
@@ -69,13 +69,8 @@
       getChildContext: function() {
         return childContext;
       },
-      __triggerUpdate__: function() {
-        return this.setState({
-          __contextualizedState__: true
-        });
-      },
       getInitialState: function() {
-        var base, contextKey, j, len1, ref, ref1, ref2, state, store;
+        var base, contextKey, j, len1, ref, ref1, ref2, store;
         if ((this.__appOwnerContext__ != null) && (((ref = this.context) != null ? ref.__appStores__ : void 0) != null)) {
           throw new Error("component has appContextMixin and is not the top level React component");
         }
@@ -84,6 +79,9 @@
         }
         if ((queryKey != null) && typeof this[queryKey] !== 'function') {
           throw new Error("did not find a method at " + queryKey);
+        }
+        if ((stateChangeKey != null) && typeof this[stateChangeKey] !== 'function') {
+          throw new Error("did not find a method at " + stateChangeKey);
         }
         contextKey = 'context';
         if (this.__appOwnerContext__ != null) {
@@ -109,19 +107,17 @@
           query = this[queryKey];
           this.plugged.data = query(this.props);
         }
-        state = {};
-        if (this.plugged.__listenedStores__ != null) {
-          state.__contextualizedState__ = true;
-        }
-        return state;
+        return {
+          __contextualizedState__: true
+        };
       },
       componentWillUnmount: function() {
-        var j, len1, ref, ref1, results, store, storeKey;
-        if ((ref = this.state) != null ? ref.__contextualizedState__ : void 0) {
-          ref1 = this.plugged.__listenedStores__;
+        var j, len1, ref, results, store, storeKey;
+        if (this.plugged.__listenedStores__ != null) {
+          ref = this.plugged.__listenedStores__;
           results = [];
-          for (j = 0, len1 = ref1.length; j < len1; j++) {
-            storeKey = ref1[j];
+          for (j = 0, len1 = ref.length; j < len1; j++) {
+            storeKey = ref[j];
             store = this.plugged.stores[storeKey];
             results.push(store.removeChangeListener(this.__triggerUpdate__));
           }
@@ -129,19 +125,25 @@
         }
       }
     };
-    if (queryKey) {
-      result.componentWillReceiveProps = function(nextProps) {
+    result.__triggerUpdate__ = function(nextProps) {
+      var state;
+      if (nextProps == null) {
+        nextProps = this.props;
+      }
+      state = {};
+      if (query != null) {
         this.plugged.prevData = void 0;
         this.plugged.nextData = query(nextProps);
-        return this.plugged.__changed__ = true;
-      };
-      result.shouldComponentUpdate = function(nextProps) {
-        if (!this.plugged.__changed__) {
-          this.plugged.prevData = void 0;
-          this.plugged.nextData = query(nextProps);
+        if (stateChangeKey != null) {
+          state = this[stateChangeKey](this.plugged.nextData);
         }
-        this.plugged.__changed__ = false;
-        return true;
+      }
+      state.__contextualizedState__ = true;
+      return this.setState(state);
+    };
+    if (queryKey != null) {
+      result.componentWillReceiveProps = function(nextProps) {
+        return this.__triggerUpdate__(nextProps);
       };
       result.componentWillUpdate = function() {
         this.plugged.prevData = this.plugged.data;

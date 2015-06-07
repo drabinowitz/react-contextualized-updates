@@ -37,7 +37,7 @@ appContextMixin = (stores) ->
     @__appOwnerContext__ = childContext
     {}
 
-contextMixin = (storeKeys, queryKey) ->
+contextMixin = (storeKeys, queryKey, stateChangeKey) ->
   storeKeys = [storeKeys] unless Array.isArray storeKeys
   contextTypes = __appStores__: React.PropTypes.object
   childContextTypes = {}
@@ -53,7 +53,6 @@ contextMixin = (storeKeys, queryKey) ->
     contextTypes: contextTypes
     childContextTypes: childContextTypes
     getChildContext: -> childContext
-    __triggerUpdate__: -> @setState __contextualizedState__: true
     getInitialState: ->
       if @__appOwnerContext__? and @context?.__appStores__?
         throw new Error(
@@ -68,6 +67,8 @@ contextMixin = (storeKeys, queryKey) ->
           received all mixins and that the order of mixins is correct")
       if queryKey? and typeof @[queryKey] isnt 'function'
         throw new Error("did not find a method at #{queryKey}")
+      if stateChangeKey? and typeof @[stateChangeKey] isnt 'function'
+        throw new Error("did not find a method at #{stateChangeKey}")
 
       contextKey = 'context'
       if @__appOwnerContext__?
@@ -87,28 +88,27 @@ contextMixin = (storeKeys, queryKey) ->
         query = @[queryKey]
         @plugged.data = query(@props)
 
-      state = {}
-      if @plugged.__listenedStores__?
-        state.__contextualizedState__ = true
-      state
+      __contextualizedState__: true
 
     componentWillUnmount: ->
-      if @state?.__contextualizedState__
+      if @plugged.__listenedStores__?
         for storeKey in @plugged.__listenedStores__
           store = @plugged.stores[storeKey]
           store.removeChangeListener @__triggerUpdate__
 
-  if queryKey
-    result.componentWillReceiveProps = (nextProps) ->
+  result.__triggerUpdate__ = (nextProps=@props)->
+    state = {}
+    if query?
       @plugged.prevData = undefined
       @plugged.nextData = query(nextProps)
-      @plugged.__changed__ = true
-    result.shouldComponentUpdate = (nextProps) ->
-      unless @plugged.__changed__
-        @plugged.prevData = undefined
-        @plugged.nextData = query(nextProps)
-      @plugged.__changed__ = false
-      return true
+      if stateChangeKey?
+        state = @[stateChangeKey](@plugged.nextData)
+    state.__contextualizedState__ = true
+    @setState state
+
+  if queryKey?
+    result.componentWillReceiveProps = (nextProps) ->
+      @__triggerUpdate__(nextProps)
     result.componentWillUpdate = ->
       @plugged.prevData = @plugged.data
       @plugged.data = @plugged.nextData
