@@ -68,6 +68,19 @@ describe 'Example', ->
           <div>Stateful Query Result: {@state.message}</div>
         </div>
 
+    @StateStopMessage = StateStopMessage = React.createClass
+      displayName: 'ShowMessage'
+      mixins: [reactUpdates.contextMixin('messageStore', '_getData', '_stateFromData')]
+      getDefaultProps: -> id: '0'
+      _getData: (props) -> @plugged.stores.messageStore.byId props.id
+      _stateFromData: (data) ->
+        unless @state?.message
+          message: data
+      render: ->
+        <div>
+          <div>StateStop Query Result: {@state.message}</div>
+        </div>
+
     @ShowOtherUser = ShowOtherUser = React.createClass
       displayName: 'ShowOtherUser'
       mixins: [reactUpdates.contextMixin('userStore')]
@@ -95,6 +108,7 @@ describe 'Example', ->
             <ShowOtherUser />
             <ShowMessage />
             <QueryMessage />
+            <StateStopMessage />
           </div>
         </div>
 
@@ -145,6 +159,15 @@ describe 'Example', ->
     @simulate.click @oneByClass @view, 'message'
     expect(@view.getDOMNode().textContent)
       .to.contain 'Stateful Query Result: New hi there'
+
+  it 'should show the message name when statestop', ->
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'StateStop Query Result: hi there'
+
+  it 'should not update message state on button click', ->
+    @simulate.click @oneByClass @view, 'message'
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'StateStop Query Result: hi there'
 
   it 'should remove change listeners on unmount', ->
     expect(@userStore._cb).to.exist
