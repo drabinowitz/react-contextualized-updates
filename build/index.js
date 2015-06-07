@@ -70,7 +70,7 @@
         return childContext;
       },
       getInitialState: function() {
-        var base, contextKey, j, len1, ref, ref1, ref2, store;
+        var base, contextKey, j, len1, ref, ref1, ref2, state, store;
         if ((this.__appOwnerContext__ != null) && (((ref = this.context) != null ? ref.__appStores__ : void 0) != null)) {
           throw new Error("component has appContextMixin and is not the top level React component");
         }
@@ -103,13 +103,16 @@
             this.plugged.__listenedStores__.push(key);
           }
         }
-        if (queryKey) {
+        if (queryKey != null) {
           query = this[queryKey];
           this.plugged.data = query(this.props);
         }
-        return {
-          __contextualizedState__: true
-        };
+        state = {};
+        if (stateChangeKey != null) {
+          state = this[stateChangeKey](this.plugged.data);
+        }
+        state.__contextualizedState__ = true;
+        return state;
       },
       componentWillUnmount: function() {
         var j, len1, ref, results, store, storeKey;

@@ -84,11 +84,15 @@ contextMixin = (storeKeys, queryKey, stateChangeKey) ->
           store.addChangeListener @__triggerUpdate__
           @plugged.__listenedStores__ or= []
           @plugged.__listenedStores__.push key
-      if queryKey
+      if queryKey?
         query = @[queryKey]
         @plugged.data = query(@props)
 
-      __contextualizedState__: true
+      state = {}
+      if stateChangeKey?
+        state = @[stateChangeKey](@plugged.data)
+      state.__contextualizedState__ = true
+      state
 
     componentWillUnmount: ->
       if @plugged.__listenedStores__?

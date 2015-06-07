@@ -58,12 +58,14 @@ describe 'Example', ->
 
     @QueryMessage = QueryMessage = React.createClass
       displayName: 'ShowMessage'
-      mixins: [reactUpdates.contextMixin('messageStore', '_getData')]
+      mixins: [reactUpdates.contextMixin('messageStore', '_getData', '_stateFromData')]
       getDefaultProps: -> id: '0'
       _getData: (props) -> @plugged.stores.messageStore.byId props.id
+      _stateFromData: (data) -> message: data
       render: ->
         <div>
           <div>Message Query Result: {@plugged.data}</div>
+          <div>Stateful Query Result: {@state.message}</div>
         </div>
 
     @ShowOtherUser = ShowOtherUser = React.createClass
@@ -134,6 +136,15 @@ describe 'Example', ->
     @simulate.click @oneByClass @view, 'message'
     expect(@view.getDOMNode().textContent)
       .to.contain 'Message Query Result: New hi there'
+
+  it 'should show the message name when stateful', ->
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'Stateful Query Result: hi there'
+
+  it 'should update message state on button click', ->
+    @simulate.click @oneByClass @view, 'message'
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'Stateful Query Result: New hi there'
 
   it 'should remove change listeners on unmount', ->
     expect(@userStore._cb).to.exist
