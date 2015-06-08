@@ -70,7 +70,7 @@
         return childContext;
       },
       getInitialState: function() {
-        var base, contextKey, j, len1, ref, ref1, ref2, state, store;
+        var base, contextKey, data, j, len1, ref, ref1, ref2, state, store, val;
         if ((this.__appOwnerContext__ != null) && (((ref = this.context) != null ? ref.__appStores__ : void 0) != null)) {
           throw new Error("component has appContextMixin and is not the top level React component");
         }
@@ -105,7 +105,15 @@
         }
         if (queryKey != null) {
           query = this[queryKey];
-          this.plugged.data = query(this.props);
+          data = query(this.props);
+          if (typeof data !== 'object') {
+            throw new Error("data: " + data + " returned from query for data is not an object.");
+          }
+          this.plugged.data = {};
+          for (key in data) {
+            val = data[key];
+            this.plugged.data[key] = val;
+          }
         }
         state = void 0;
         if (stateChangeKey != null) {
@@ -137,7 +145,7 @@
       state = void 0;
       if (query != null) {
         this.plugged.prevData = void 0;
-        this.plugged.nextData = query(nextProps);
+        this.plugged.nextData = query(nextProps, this.props);
         if (stateChangeKey != null) {
           state = this[stateChangeKey](this.plugged.nextData, this.plugged.data);
         }
