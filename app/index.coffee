@@ -113,7 +113,7 @@ contextMixin = (storeKeys, queryKey, stateChangeKey) ->
       @plugged.prevData = undefined
       @plugged.nextData = query(nextProps)
       if stateChangeKey?
-        state = @[stateChangeKey](@plugged.nextData)
+        state = @[stateChangeKey](@plugged.nextData, @plugged.data)
     state or= {}
     state.__contextualizedState__ = true
     @setState state

@@ -61,11 +61,14 @@ describe 'Example', ->
       mixins: [reactUpdates.contextMixin('messageStore', '_getData', '_stateFromData')]
       getDefaultProps: -> id: '0'
       _getData: (props) -> @plugged.stores.messageStore.byId props.id
-      _stateFromData: (data) -> message: data
+      _stateFromData: (data, lastData) ->
+        message: data
+        lastMessage: lastData
       render: ->
         <div>
           <div>Message Query Result: {@plugged.data}</div>
           <div>Stateful Query Result: {@state.message}</div>
+          <div>State Prev Query Result: {@state.lastMessage}</div>
         </div>
 
     @StateStopMessage = StateStopMessage = React.createClass
@@ -159,6 +162,11 @@ describe 'Example', ->
     @simulate.click @oneByClass @view, 'message'
     expect(@view.getDOMNode().textContent)
       .to.contain 'Stateful Query Result: New hi there'
+
+  it 'should last message state on button click', ->
+    @simulate.click @oneByClass @view, 'message'
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'State Prev Query Result: hi there'
 
   it 'should show the message name when statestop', ->
     expect(@view.getDOMNode().textContent)
