@@ -107,10 +107,11 @@
           query = this[queryKey];
           this.plugged.data = query(this.props);
         }
-        state = {};
+        state = void 0;
         if (stateChangeKey != null) {
           state = this[stateChangeKey](this.plugged.data);
         }
+        state || (state = {});
         state.__contextualizedState__ = true;
         return state;
       },
@@ -133,14 +134,15 @@
       if (nextProps == null) {
         nextProps = this.props;
       }
-      state = {};
+      state = void 0;
       if (query != null) {
         this.plugged.prevData = void 0;
         this.plugged.nextData = query(nextProps);
         if (stateChangeKey != null) {
-          state = this[stateChangeKey](this.plugged.nextData);
+          state = this[stateChangeKey](this.plugged.nextData, this.plugged.data);
         }
       }
+      state || (state = {});
       state.__contextualizedState__ = true;
       return this.setState(state);
     };

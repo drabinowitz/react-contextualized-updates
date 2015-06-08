@@ -60,14 +60,16 @@ describe 'Example', ->
       displayName: 'ShowMessage'
       mixins: [reactUpdates.contextMixin('messageStore', '_getData', '_stateFromData')]
       getDefaultProps: -> id: '0'
-      _getData: (props) ->
+      _getData: (props, lastProps) ->
         message: @plugged.stores.messageStore.byId props.id
+        lastMessage: @plugged.stores.messageStore.byId lastProps?.id
       _stateFromData: (data, lastData) ->
         message: data.message
         lastMessage: lastData?.message
       render: ->
         <div>
           <div>Message Query Result: {@plugged.data.message}</div>
+          <div>Message Prev Query Result: {@plugged.data.lastMessage}</div>
           <div>Stateful Query Result: {@state.message}</div>
           <div>State Prev Query Result: {@state.lastMessage}</div>
         </div>
@@ -155,6 +157,11 @@ describe 'Example', ->
     @simulate.click @oneByClass @view, 'message'
     expect(@view.getDOMNode().textContent)
       .to.contain 'Message Query Result: New hi there'
+
+  it 'should prev message query on button click', ->
+    @simulate.click @oneByClass @view, 'message'
+    expect(@view.getDOMNode().textContent)
+      .to.contain 'Message Prev Query Result: New hi there'
 
   it 'should show the message name when stateful', ->
     expect(@view.getDOMNode().textContent)

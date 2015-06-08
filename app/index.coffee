@@ -117,7 +117,7 @@ contextMixin = (storeKeys, queryKey, stateChangeKey) ->
     state = undefined
     if query?
       @plugged.prevData = undefined
-      @plugged.nextData = query(nextProps)
+      @plugged.nextData = query(nextProps, @props)
       if stateChangeKey?
         state = @[stateChangeKey](@plugged.nextData, @plugged.data)
     state or= {}
