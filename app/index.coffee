@@ -92,7 +92,13 @@ contextMixin = (storeKeys, queryKey, stateChangeKey) ->
 
       if queryKey?
         query = @[queryKey]
-        @plugged.data = query(@props)
+        data = query(@props)
+        if typeof data isnt 'object'
+          throw new Error(
+            "data: #{data} returned from query for data is not an object.")
+        @plugged.data = {}
+        for key, val of data
+          @plugged.data[key] = val
 
       state = undefined
       if stateChangeKey?

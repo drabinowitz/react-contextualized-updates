@@ -60,13 +60,14 @@ describe 'Example', ->
       displayName: 'ShowMessage'
       mixins: [reactUpdates.contextMixin('messageStore', '_getData', '_stateFromData')]
       getDefaultProps: -> id: '0'
-      _getData: (props) -> @plugged.stores.messageStore.byId props.id
+      _getData: (props) ->
+        message: @plugged.stores.messageStore.byId props.id
       _stateFromData: (data, lastData) ->
-        message: data
-        lastMessage: lastData
+        message: data.message
+        lastMessage: lastData?.message
       render: ->
         <div>
-          <div>Message Query Result: {@plugged.data}</div>
+          <div>Message Query Result: {@plugged.data.message}</div>
           <div>Stateful Query Result: {@state.message}</div>
           <div>State Prev Query Result: {@state.lastMessage}</div>
         </div>
@@ -75,10 +76,11 @@ describe 'Example', ->
       displayName: 'ShowMessage'
       mixins: [reactUpdates.contextMixin('messageStore', '_getData', '_stateFromData')]
       getDefaultProps: -> id: '0'
-      _getData: (props) -> @plugged.stores.messageStore.byId props.id
+      _getData: (props) ->
+        message: @plugged.stores.messageStore.byId props.id
       _stateFromData: (data) ->
         unless @state?.message
-          message: data
+          message: data.message
       render: ->
         <div>
           <div>StateStop Query Result: {@state.message}</div>
